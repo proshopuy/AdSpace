@@ -12,6 +12,7 @@ const TYPE_GRADIENTS: Record<string, string> = {
   restaurant: "from-orange-900 to-zinc-900",
   billboard:  "from-red-900 to-zinc-900",
   office:     "from-cyan-900 to-zinc-900",
+  totem:      "from-violet-900 to-zinc-900",
 };
 
 export default function SpaceCard({ space }: { space: Space }) {
@@ -41,7 +42,8 @@ export default function SpaceCard({ space }: { space: Space }) {
                  space.type === "car" ? "🚗" :
                  space.type === "vending" ? "🤖" :
                  space.type === "restaurant" ? "🍽️" :
-                 space.type === "billboard" ? "📋" : "🏢"}
+                 space.type === "billboard" ? "📋" :
+                 space.type === "totem" ? "📺" : "🏢"}
               </span>
             </div>
           )}

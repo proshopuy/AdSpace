@@ -1,4 +1,4 @@
-export type SpaceType = "gym" | "car" | "vending" | "restaurant" | "billboard" | "office";
+export type SpaceType = "gym" | "car" | "vending" | "restaurant" | "billboard" | "office" | "totem";
 
 export interface Space {
   id: number;
@@ -22,6 +22,7 @@ export const TYPE_LABELS: Record<SpaceType, string> = {
   restaurant: "Restaurante",
   billboard: "Cartelería",
   office: "Oficina",
+  totem: "Tótem digital",
 };
 
 export const CITIES = ["Todas", "Montevideo", "Punta del Este", "Canelones", "Maldonado"];
@@ -138,5 +139,33 @@ export const SPACES: Space[] = [
     format: "Pantalla tablet 10\" x10 vehículos",
     available: true,
     owner: "Hernán T.",
+  },
+  {
+    id: 9,
+    title: "Tótem digital Shopping",
+    location: "Montevideo Shopping",
+    city: "Montevideo",
+    type: "totem",
+    traffic: 8000,
+    price: 800,
+    image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&q=80",
+    description: "Tótem digital de alta resolución en el pasillo central del shopping. Pantalla 4K de doble cara, 2 metros de altura. El anuncio se reproduce cada 10 segundos en rotación. Máxima exposición en el punto de mayor tráfico del centro comercial.",
+    format: "Tótem LED 4K doble cara",
+    available: true,
+    owner: "AdSpace Media",
+  },
+  {
+    id: 10,
+    title: "Tótem exterior Punta del Este",
+    location: "Av. Gorlero y 29",
+    city: "Punta del Este",
+    type: "totem",
+    traffic: 5000,
+    price: 1200,
+    image: "https://images.unsplash.com/photo-1567359781514-3b964e2b04d6?w=800&q=80",
+    description: "Tótem digital exterior en la esquina más transitada de Punta del Este. Resistente a la intemperie, iluminación adaptativa según horario. Ideal para marcas de lujo, inmobiliarias, gastronomía y turismo. Temporada alta: diciembre a marzo.",
+    format: "Tótem outdoor 75\" impermeable",
+    available: true,
+    owner: "AdSpace Media",
   },
 ];
