@@ -11,7 +11,7 @@ export default function SpacesPage() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("Todas");
   const [type, setType] = useState<SpaceType | "all">("all");
-  const [maxPrice, setMaxPrice] = useState(30000);
+  const [maxPrice, setMaxPrice] = useState(1000);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sort, setSort] = useState<"price_asc" | "price_desc" | "traffic">("traffic");
 
@@ -112,20 +112,20 @@ export default function SpacesPage() {
               {/* Price */}
               <div>
                 <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">
-                  Precio máximo: <span className="text-white">${maxPrice.toLocaleString()}</span>
+                  Precio máximo: <span className="text-white">USD {maxPrice.toLocaleString()}</span>
                 </label>
                 <input
                   type="range"
-                  min={1000}
-                  max={30000}
-                  step={1000}
+                  min={50}
+                  max={1000}
+                  step={25}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-blue-500"
                 />
                 <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>$1.000</span>
-                  <span>$30.000</span>
+                  <span>USD 50</span>
+                  <span>USD 1.000</span>
                 </div>
               </div>
 

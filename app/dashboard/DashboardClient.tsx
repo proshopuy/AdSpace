@@ -93,7 +93,7 @@ export default function DashboardClient({ user, role, spaces, contracts }: Props
               />
               <StatCard
                 label="Ingresos estimados"
-                value={`$${spaces.reduce((acc: number, s: any) => acc + (s.price || 0), 0).toLocaleString()}`}
+                value={`USD ${spaces.reduce((acc: number, s: any) => acc + (s.price || 0), 0).toLocaleString()}`}
                 icon={TrendingUp}
               />
             </>
@@ -163,7 +163,7 @@ function OwnerSpaces({ spaces }: { spaces: any[] }) {
                 <p className="text-gray-500 text-xs">personas/día</p>
               </div>
               <div className="text-center">
-                <p className="text-blue-400 font-bold">${space.price?.toLocaleString() ?? "—"}</p>
+                <p className="text-blue-400 font-bold">USD {space.price?.toLocaleString() ?? "—"}</p>
                 <p className="text-gray-500 text-xs">/mes</p>
               </div>
               <span className={`text-xs px-2 py-1 rounded-full border ${
@@ -206,7 +206,7 @@ function AdvertiserContracts({ contracts }: { contracts: any[] }) {
                 <p className="text-gray-500 text-sm">{c.spaces?.city}</p>
               </div>
               <div className="flex items-center gap-4 shrink-0 text-sm">
-                <p className="text-blue-400 font-bold">${c.spaces?.price?.toLocaleString() ?? "—"}<span className="text-gray-600">/mes</span></p>
+                <p className="text-blue-400 font-bold">USD {c.spaces?.price?.toLocaleString() ?? "—"}<span className="text-gray-600">/mes</span></p>
                 <span className={`flex items-center gap-1 text-xs ${status.color}`}>
                   <StatusIcon size={13} />
                   {status.label}

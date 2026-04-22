@@ -82,7 +82,7 @@ export default function SpaceModal({ space, open, onClose }: Props) {
           <div className="mt-6 flex items-center justify-between">
             <div>
               <span className="text-blue-500 font-bold text-2xl">
-                ${space.price.toLocaleString()}
+                USD {space.price.toLocaleString()}
               </span>
               <span className="text-gray-500 text-sm">/mes</span>
             </div>

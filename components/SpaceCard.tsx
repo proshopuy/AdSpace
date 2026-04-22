@@ -82,7 +82,7 @@ export default function SpaceCard({ space }: { space: Space }) {
 
           <div className="mt-4 flex items-center justify-between">
             <span className="text-blue-500 font-bold text-lg">
-              ${space.price.toLocaleString()}<span className="text-sm font-normal text-gray-500">/mes</span>
+              USD {space.price.toLocaleString()}<span className="text-sm font-normal text-gray-500">/mes</span>
             </span>
             <button className="text-sm border border-gray-700 hover:border-blue-500 hover:text-blue-400 text-gray-400 px-3 py-1.5 rounded-lg transition">
               Ver más

@@ -102,7 +102,7 @@ export default function SpacesGrid({ spaces }: Props) {
 
                 <div className="mt-5 flex items-center justify-between">
                   <span className="text-blue-400 font-bold text-lg">
-                    ${space.price.toLocaleString()}
+                    USD {space.price.toLocaleString()}
                     <span className="text-gray-600 font-normal text-sm">/mes</span>
                   </span>
                   <Link
