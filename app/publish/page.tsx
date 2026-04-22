@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, ImagePlus, X } from "lucide-react";
 import { TYPE_LABELS, SpaceType } from "@/lib/spaces";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,6 +15,9 @@ export default function PublishPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     type: "" as SpaceType | "",
     title: "",
@@ -29,6 +32,19 @@ export default function PublishPage() {
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -42,6 +58,27 @@ export default function PublishPage() {
       return;
     }
 
+    let imageUrl: string | null = null;
+
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("space-images")
+        .upload(path, imageFile, { upsert: true });
+
+      if (uploadError) {
+        setError("Error subiendo la imagen. Intentá de nuevo.");
+        setLoading(false);
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("space-images")
+        .getPublicUrl(path);
+      imageUrl = publicUrl;
+    }
+
     const { error } = await supabase.from("spaces").insert({
       owner_id: user.id,
       type: form.type,
@@ -52,6 +89,7 @@ export default function PublishPage() {
       price: parseInt(form.price),
       format: form.format,
       description: form.description,
+      image: imageUrl,
       available: true,
       approved: true,
     });
@@ -217,6 +255,38 @@ export default function PublishPage() {
 
           {step === 2 && (
             <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Foto del espacio (opcional)</label>
+                {imagePreview ? (
+                  <div className="relative rounded-xl overflow-hidden h-44">
+                    <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white p-1.5 rounded-full transition"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-44 border-2 border-dashed border-zinc-700 hover:border-blue-500 rounded-xl flex flex-col items-center justify-center gap-2 transition text-gray-500 hover:text-blue-400"
+                  >
+                    <ImagePlus size={28} />
+                    <span className="text-sm">Subir foto</span>
+                    <span className="text-xs text-gray-600">JPG, PNG, WEBP — máx 5MB</span>
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+              </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Formato publicitario</label>
                 <input
