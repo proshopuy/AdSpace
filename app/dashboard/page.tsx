@@ -31,7 +31,7 @@ export default async function DashboardPage() {
   if (role === "advertiser") {
     const { data } = await supabase
       .from("contracts")
-      .select("*, spaces(title, city, price, image_url)")
+      .select("*, spaces(title, city, price, image, type)")
       .eq("advertiser_id", user.id)
       .order("created_at", { ascending: false });
     contracts = data;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, MapPin, Users, TrendingUp,
-  Plus, LogOut, CheckCircle, Clock, XCircle
+  Plus, LogOut, CheckCircle, Clock, XCircle, Calendar, DollarSign
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { TYPE_LABELS, SpaceType } from "@/lib/spaces";
@@ -101,8 +101,12 @@ export default function DashboardClient({ user, role, spaces, contracts }: Props
             <>
               <StatCard label="Contratos activos" value={contracts.filter((c) => c.status === "active").length} icon={CheckCircle} />
               <StatCard label="Contratos totales" value={contracts.length} icon={MapPin} />
+              <StatCard
+                label="Gasto mensual"
+                value={`USD ${contracts.filter((c) => c.status === "active").reduce((acc: number, c: any) => acc + (c.spaces?.price || 0), 0).toLocaleString()}`}
+                icon={DollarSign}
+              />
               <StatCard label="Pendientes" value={contracts.filter((c) => c.status === "pending").length} icon={Clock} />
-              <StatCard label="Espacios vistos" value="—" icon={TrendingUp} />
             </>
           )}
         </div>
@@ -148,8 +152,11 @@ function OwnerSpaces({ spaces }: { spaces: any[] }) {
         {spaces.map((space: any) => (
           <div key={space.id} className="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
-              {space.image_url && (
-                <img src={space.image_url} className="w-14 h-14 rounded-xl object-cover shrink-0" alt="" />
+              {space.image ? (
+                <img src={space.image} className="w-14 h-14 rounded-xl object-cover shrink-0" alt=""
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-zinc-800 shrink-0" />
               )}
               <div className="min-w-0">
                 <p className="text-white font-medium truncate">{space.title}</p>
@@ -199,18 +206,48 @@ function AdvertiserContracts({ contracts }: { contracts: any[] }) {
         {contracts.map((c: any) => {
           const status = STATUS_MAP[c.status] ?? STATUS_MAP.pending;
           const StatusIcon = status.icon;
+          const startDate = c.start_date
+            ? new Date(c.start_date).toLocaleDateString("es-UY", { day: "2-digit", month: "short", year: "numeric" })
+            : null;
           return (
-            <div key={c.id} className="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-white font-medium">{c.spaces?.title ?? "Espacio"}</p>
-                <p className="text-gray-500 text-sm">{c.spaces?.city}</p>
+            <div key={c.id} className="bg-zinc-900 rounded-2xl p-5 flex items-center gap-4">
+              {c.spaces?.image ? (
+                <img
+                  src={c.spaces.image}
+                  alt={c.spaces.title}
+                  className="w-16 h-16 rounded-xl object-cover shrink-0"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-zinc-800 shrink-0" />
+              )}
+
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-medium truncate">{c.spaces?.title ?? "Espacio"}</p>
+                <p className="text-gray-500 text-sm">{c.spaces?.city} · {TYPE_LABELS[c.spaces?.type as SpaceType] ?? c.spaces?.type}</p>
+                {startDate && (
+                  <p className="text-gray-600 text-xs flex items-center gap-1 mt-1">
+                    <Calendar size={11} />
+                    Inicio: {startDate}
+                  </p>
+                )}
               </div>
-              <div className="flex items-center gap-4 shrink-0 text-sm">
-                <p className="text-blue-400 font-bold">USD {c.spaces?.price?.toLocaleString() ?? "—"}<span className="text-gray-600">/mes</span></p>
-                <span className={`flex items-center gap-1 text-xs ${status.color}`}>
-                  <StatusIcon size={13} />
+
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <p className="text-blue-400 font-bold text-sm">
+                  USD {c.spaces?.price?.toLocaleString() ?? "—"}<span className="text-gray-600 font-normal">/mes</span>
+                </p>
+                <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${
+                  c.status === "active" ? "border-green-500/30 bg-green-400/10 text-green-400" :
+                  c.status === "cancelled" ? "border-red-500/30 bg-red-400/10 text-red-400" :
+                  "border-yellow-500/30 bg-yellow-400/10 text-yellow-400"
+                }`}>
+                  <StatusIcon size={11} />
                   {status.label}
                 </span>
+                <Link href="/spaces" className="text-xs text-gray-500 hover:text-blue-400 transition">
+                  Ver espacios →
+                </Link>
               </div>
             </div>
           );
