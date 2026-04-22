@@ -7,7 +7,7 @@ import * as random from "maath/random";
 
 function StarField() {
   const ref = useRef<any>(null);
-  const points = random.inSphere(new Float32Array(6000), { radius: 1.5 });
+  const points = random.inSphere(new Float32Array(6000), { radius: 1.5 }) as Float32Array;
 
   useFrame((_, delta) => {
     if (ref.current) {
