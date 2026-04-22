@@ -91,7 +91,7 @@ export default function PublishPage() {
       description: form.description,
       image: imageUrl,
       available: true,
-      approved: true,
+      approved: false,
     });
 
     if (error) {
