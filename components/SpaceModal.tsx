@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, MapPin, Users, Monitor, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, MapPin, Users, Monitor, Loader2 } from "lucide-react";
 import { Space, TYPE_LABELS } from "@/lib/spaces";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface Props {
   space: Space;
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function SpaceModal({ space, open, onClose }: Props) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -19,6 +23,36 @@ export default function SpaceModal({ space, open, onClose }: Props) {
   }, [open]);
 
   if (!open) return null;
+
+  const handleContratar = async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/auth");
+      return;
+    }
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        spaceId: space.id,
+        title: space.title,
+        price: space.price,
+      }),
+    });
+
+    const { url, error } = await res.json();
+    if (error || !url) {
+      alert("Error al iniciar el pago. Intentá de nuevo.");
+      setLoading(false);
+      return;
+    }
+
+    window.location.href = url;
+  };
 
   return (
     <div
@@ -61,7 +95,7 @@ export default function SpaceModal({ space, open, onClose }: Props) {
             {space.description}
           </p>
 
-          <div className="mt-5 grid grid-cols-3 gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-3">
             <div className="bg-zinc-800 rounded-xl p-3 text-center">
               <Users size={18} className="mx-auto text-blue-400 mb-1" />
               <p className="text-white font-semibold text-sm">{space.traffic.toLocaleString()}</p>
@@ -71,11 +105,6 @@ export default function SpaceModal({ space, open, onClose }: Props) {
               <Monitor size={18} className="mx-auto text-blue-400 mb-1" />
               <p className="text-white font-semibold text-sm">{space.format}</p>
               <p className="text-gray-500 text-xs">formato</p>
-            </div>
-            <div className="bg-zinc-800 rounded-xl p-3 text-center">
-              <User size={18} className="mx-auto text-blue-400 mb-1" />
-              <p className="text-white font-semibold text-sm">{space.owner}</p>
-              <p className="text-gray-500 text-xs">propietario</p>
             </div>
           </div>
 
@@ -88,18 +117,24 @@ export default function SpaceModal({ space, open, onClose }: Props) {
             </div>
 
             {space.available ? (
-              <Link
-                href="/auth"
-                className="bg-blue-600 hover:bg-blue-500 transition text-white px-6 py-3 rounded-xl font-semibold"
+              <button
+                onClick={handleContratar}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-60 transition text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2"
               >
-                Contratar espacio
-              </Link>
+                {loading && <Loader2 size={16} className="animate-spin" />}
+                {loading ? "Redirigiendo..." : "Contratar espacio"}
+              </button>
             ) : (
               <span className="text-gray-500 text-sm border border-gray-700 px-6 py-3 rounded-xl">
                 No disponible
               </span>
             )}
           </div>
+
+          <p className="mt-3 text-center text-xs text-gray-600">
+            Pago seguro con Stripe · Cancelá cuando quieras
+          </p>
         </div>
       </div>
     </div>

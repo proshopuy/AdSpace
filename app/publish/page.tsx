@@ -53,7 +53,7 @@ export default function PublishPage() {
       format: form.format,
       description: form.description,
       available: true,
-      approved: false,
+      approved: true,
     });
 
     if (error) {
