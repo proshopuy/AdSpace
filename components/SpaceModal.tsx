@@ -29,12 +29,15 @@ export default function SpaceModal({ space, open, onClose }: Props) {
         className="bg-zinc-900 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative">
-          <img
-            src={space.image}
-            alt={space.title}
-            className="w-full h-64 object-cover"
-          />
+        <div className="relative h-64 bg-zinc-800">
+          {space.image && (
+            <img
+              src={space.image}
+              alt={space.title}
+              className="w-full h-64 object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 bg-black/60 hover:bg-black text-white p-2 rounded-full transition"
