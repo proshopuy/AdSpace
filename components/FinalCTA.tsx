@@ -63,7 +63,7 @@ export default function FinalCTA() {
       <div ref={contentRef} className="relative z-10 max-w-3xl mx-auto opacity-0">
         <p className="text-blue-400 text-sm tracking-widest uppercase mb-5">Empezá ahora</p>
         <h2 className="text-5xl md:text-7xl font-bold leading-tight">
-          Tu marca merece<br />más que invisible
+          Publicidad que se ve.<br />De verdad.
         </h2>
 
         <p className="mt-6 text-lg text-gray-400 max-w-xl mx-auto">
