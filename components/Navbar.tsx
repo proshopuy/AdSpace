@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, LayoutDashboard, LogOut, ShieldCheck, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import Logo from "./Logo";
 
 export default function Navbar() {
   const router = useRouter();
@@ -63,8 +64,8 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-white font-bold text-xl tracking-tight">
-          Ad<span className="text-blue-500">Space</span>
+        <Link href="/">
+          <Logo size={30} />
         </Link>
 
         {/* Desktop links */}

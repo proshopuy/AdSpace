@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Building2, Megaphone, Loader2, Mail } from "lucide-react";
+import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/client";
 
 type Role = "advertiser" | "owner";
@@ -120,10 +121,8 @@ function AuthForm() {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Ad<span className="text-blue-500">Space</span>
-          </h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <Logo size={36} />
+          <p className="text-gray-500 mt-3 text-sm">
             {mode === "login" ? "Ingresá a tu cuenta" : "Creá tu cuenta gratis"}
           </p>
         </div>
