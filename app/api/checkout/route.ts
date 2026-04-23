@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { MercadoPagoConfig, PreApproval } from "mercadopago";
 import { createClient } from "@/lib/supabase/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -15,31 +13,24 @@ export async function POST(request: Request) {
   const { spaceId, title, price } = await request.json();
   const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: title,
-            description: "Publicidad mensual — AdSpace",
-          },
-          unit_amount: price * 100,
-          recurring: { interval: "month" },
-        },
-        quantity: 1,
+  const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
+  const preApproval = new PreApproval(client);
+
+  const result = await preApproval.create({
+    body: {
+      reason: `${title} — AdSpace`,
+      external_reference: `${spaceId}|${user.id}|${user.email ?? ""}`,
+      payer_email: user.email!,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: price,
+        currency_id: "UYU",
       },
-    ],
-    mode: "subscription",
-    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&space_id=${spaceId}`,
-    cancel_url: `${origin}/spaces`,
-    metadata: {
-      space_id: spaceId,
-      user_id: user.id,
-      advertiser_email: user.email ?? "",
+      back_url: `${origin}/checkout/success?space_id=${spaceId}`,
+      status: "pending",
     },
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ url: result.init_point });
 }
