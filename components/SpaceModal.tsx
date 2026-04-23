@@ -25,7 +25,6 @@ export default function SpaceModal({ space, open, onClose }: Props) {
   if (!open) return null;
 
   const handleContratar = async () => {
-    setLoading(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -34,24 +33,30 @@ export default function SpaceModal({ space, open, onClose }: Props) {
       return;
     }
 
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        spaceId: space.id,
-        title: space.title,
-        price: space.price,
-      }),
-    });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          spaceId: space.id,
+          title: space.title,
+          price: space.price,
+        }),
+      });
 
-    const { url, error } = await res.json();
-    if (error || !url) {
-      alert("Error al iniciar el pago. Intentá de nuevo.");
+      const { url, error } = await res.json();
+      if (error || !url) {
+        alert("Error al iniciar el pago. Intentá de nuevo.");
+        return;
+      }
+
+      window.location.href = url;
+    } catch {
+      alert("Error de conexión. Intentá de nuevo.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    window.location.href = url;
   };
 
   return (
@@ -133,7 +138,7 @@ export default function SpaceModal({ space, open, onClose }: Props) {
           </div>
 
           <p className="mt-3 text-center text-xs text-gray-600">
-            Pago seguro con Stripe · Cancelá cuando quieras
+            Pago seguro con MercadoPago · Cancelá cuando quieras
           </p>
         </div>
       </div>
