@@ -21,7 +21,14 @@ export async function GET(request: Request) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    await supabase.from("profiles").upsert({ id: user.id, email: user.email }, { onConflict: "id" });
+    const meta = user.user_metadata ?? {};
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      email: user.email,
+      name: meta.name ?? null,
+      phone: meta.phone ?? null,
+      role: meta.role ?? "advertiser",
+    }, { onConflict: "id" });
   }
 
   return NextResponse.redirect(`${origin}/dashboard`);

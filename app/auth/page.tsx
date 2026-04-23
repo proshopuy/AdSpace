@@ -22,7 +22,7 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("login");
   const [role, setRole] = useState<Role>("advertiser");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
@@ -60,7 +60,7 @@ function AuthForm() {
         email: form.email,
         password: form.password,
         options: {
-          data: { name: form.name, role },
+          data: { name: form.name, phone: form.phone, role },
           emailRedirectTo: `${location.origin}/auth/callback`,
         },
       });
@@ -70,7 +70,7 @@ function AuthForm() {
       } else if (data.user) {
         if (data.session) {
           // Sin confirmación de email — sesión inmediata
-          await supabase.from("profiles").upsert({ id: data.user.id, name: form.name, role });
+          await supabase.from("profiles").upsert({ id: data.user.id, email: form.email, name: form.name, phone: form.phone, role });
           router.push("/dashboard");
           router.refresh();
         } else {
@@ -167,17 +167,30 @@ function AuthForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === "register" && (
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">Nombre completo</label>
-              <input
-                type="text"
-                required
-                placeholder="Juan García"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-              />
-            </div>
+            <>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Nombre completo</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Juan García"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Teléfono</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+598 09X XXX XXX"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
+                />
+              </div>
+            </>
           )}
 
           <div>

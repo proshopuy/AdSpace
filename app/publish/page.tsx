@@ -13,6 +13,7 @@ export default function PublishPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [autoApproved, setAutoApproved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -79,7 +80,7 @@ export default function PublishPage() {
       imageUrl = publicUrl;
     }
 
-    const { error } = await supabase.from("spaces").insert({
+    const { data: inserted, error } = await supabase.from("spaces").insert({
       owner_id: user.id,
       type: form.type,
       title: form.title,
@@ -92,11 +93,19 @@ export default function PublishPage() {
       image: imageUrl,
       available: true,
       approved: false,
-    });
+    }).select("id").single();
 
     if (error) {
       setError("Hubo un error al publicar. Intentá de nuevo.");
     } else {
+      if (inserted?.id) {
+        const review = await fetch("/api/review-space", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spaceId: inserted.id }),
+        }).then((r) => r.json()).catch(() => ({ approved: false }));
+        setAutoApproved(review.approved === true);
+      }
       setSubmitted(true);
     }
 
@@ -107,10 +116,14 @@ export default function PublishPage() {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center px-4 text-center">
         <div>
-          <CheckCircle size={56} className="text-blue-500 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-white mb-3">¡Espacio publicado!</h2>
+          <CheckCircle size={56} className={`mx-auto mb-4 ${autoApproved ? "text-green-500" : "text-blue-500"}`} />
+          <h2 className="text-3xl font-bold text-white mb-3">
+            {autoApproved ? "¡Espacio activo!" : "¡Espacio publicado!"}
+          </h2>
           <p className="text-gray-400 mb-8 max-w-sm mx-auto">
-            Tu espacio fue enviado para revisión. Te avisamos en menos de 24hs cuando esté activo.
+            {autoApproved
+              ? "Tu espacio fue revisado y aprobado automáticamente. Ya es visible para los anunciantes."
+              : "Tu espacio fue enviado para revisión. Te avisamos en menos de 24hs cuando esté activo."}
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-500 transition text-white px-6 py-3 rounded-xl text-sm font-semibold">
