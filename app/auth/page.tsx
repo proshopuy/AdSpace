@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, Megaphone, Loader2 } from "lucide-react";
+import { ArrowLeft, Building2, Megaphone, Loader2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Role = "advertiser" | "owner";
@@ -11,11 +11,14 @@ type Mode = "login" | "register";
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("login");
   const [role, setRole] = useState<Role>("advertiser");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [sentTo, setSentTo] = useState("");
 
   const supabase = createClient();
 
@@ -23,6 +26,9 @@ export default function AuthPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) router.replace("/dashboard");
     });
+    if (searchParams.get("error") === "link_invalido") {
+      setError("El link de confirmación es inválido o expiró. Intentá registrarte de nuevo.");
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,19 +60,47 @@ export default function AuthPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        // Insert profile
-        await supabase.from("profiles").insert({
-          id: data.user.id,
-          name: form.name,
-          role,
-        });
-        router.push("/dashboard");
-        router.refresh();
+        if (data.session) {
+          // Sin confirmación de email — sesión inmediata
+          await supabase.from("profiles").upsert({ id: data.user.id, name: form.name, role });
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          // Con confirmación de email — mostrar pantalla de "revisá tu email"
+          setSentTo(form.email);
+          setEmailSent(true);
+        }
       }
     }
 
     setLoading(false);
   };
+
+  if (emailSent) {
+    return (
+      <main className="min-h-screen bg-black flex items-center justify-center px-4 text-center">
+        <div className="max-w-sm w-full">
+          <div className="w-16 h-16 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Mail size={28} className="text-blue-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Revisá tu email</h2>
+          <p className="text-gray-400 text-sm mb-1">
+            Te mandamos un link de confirmación a:
+          </p>
+          <p className="text-white font-medium mb-6">{sentTo}</p>
+          <p className="text-gray-500 text-sm mb-8">
+            Hacé click en el link del email para activar tu cuenta. Si no lo ves, revisá la carpeta de spam.
+          </p>
+          <Link
+            href="/"
+            className="inline-block border border-zinc-700 hover:border-white text-white text-sm px-6 py-3 rounded-xl transition"
+          >
+            Volver al inicio
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-black flex items-center justify-center px-4">
