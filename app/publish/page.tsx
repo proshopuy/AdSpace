@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Loader2, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { TYPE_LABELS, SpaceType } from "@/lib/spaces";
 import { createClient } from "@/lib/supabase/client";
+import ImageUploader from "@/components/ImageUploader";
 
 const STEPS = ["Tipo de espacio", "Ubicación y datos", "Precio y detalles"];
+const MAX_IMAGES = 5;
 
 export default function PublishPage() {
   const router = useRouter();
@@ -16,9 +18,10 @@ export default function PublishPage() {
   const [autoApproved, setAutoApproved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+
   const [form, setForm] = useState({
     type: "" as SpaceType | "",
     title: "",
@@ -33,17 +36,17 @@ export default function PublishPage() {
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+  const handleAddFiles = (files: FileList) => {
+    const arr = Array.from(files);
+    const remaining = MAX_IMAGES - newFiles.length;
+    const toAdd = arr.slice(0, remaining);
+    setNewFiles((prev) => [...prev, ...toAdd]);
+    setNewPreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
   };
 
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleRemoveNew = (i: number) => {
+    setNewFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setNewPreviews((prev) => prev.filter((_, idx) => idx !== i));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,34 +56,26 @@ export default function PublishPage() {
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/auth"); return; }
 
-    if (!user) {
-      router.push("/auth");
-      return;
-    }
+    const uploadedUrls: string[] = [];
 
-    let imageUrl: string | null = null;
-
-    if (imageFile) {
-      const ext = imageFile.name.split(".").pop();
-      const path = `${user.id}/${Date.now()}.${ext}`;
+    for (const file of newFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("space-images")
-        .upload(path, imageFile, { upsert: true });
-
+        .upload(path, file, { upsert: true });
       if (uploadError) {
-        setError("Error subiendo la imagen. Intentá de nuevo.");
+        setError("Error subiendo una imagen. Intentá de nuevo.");
         setLoading(false);
         return;
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("space-images")
-        .getPublicUrl(path);
-      imageUrl = publicUrl;
+      const { data: { publicUrl } } = supabase.storage.from("space-images").getPublicUrl(path);
+      uploadedUrls.push(publicUrl);
     }
 
-    const { error } = await supabase.from("spaces").insert({
+    const { error: insertError } = await supabase.from("spaces").insert({
       owner_id: user.id,
       type: form.type,
       title: form.title,
@@ -90,13 +85,14 @@ export default function PublishPage() {
       price: parseInt(form.price),
       format: form.format,
       description: form.description,
-      image: imageUrl,
+      image: uploadedUrls[0] ?? null,
+      images: uploadedUrls.length > 0 ? uploadedUrls : null,
       available: true,
       approved: false,
     });
 
-    if (error) {
-      setError(error.message || "Hubo un error al publicar. Intentá de nuevo.");
+    if (insertError) {
+      setError(insertError.message || "Hubo un error al publicar. Intentá de nuevo.");
     } else {
       const { data: latest } = await supabase
         .from("spaces")
@@ -162,16 +158,12 @@ export default function PublishPage() {
           {STEPS.map((label, i) => (
             <div key={i} className="flex items-center gap-2 flex-1">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition ${
-                i < step ? "bg-blue-600 text-white" : i === step ? "bg-blue-600 text-white" : "bg-zinc-800 text-gray-600"
+                i <= step ? "bg-blue-600 text-white" : "bg-zinc-800 text-gray-600"
               }`}>
                 {i < step ? "✓" : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${i === step ? "text-white" : "text-gray-600"}`}>
-                {label}
-              </span>
-              {i < STEPS.length - 1 && (
-                <div className={`h-px flex-1 ${i < step ? "bg-blue-600" : "bg-zinc-800"}`} />
-              )}
+              <span className={`text-xs hidden sm:block ${i === step ? "text-white" : "text-gray-600"}`}>{label}</span>
+              {i < STEPS.length - 1 && <div className={`h-px flex-1 ${i < step ? "bg-blue-600" : "bg-zinc-800"}`} />}
             </div>
           ))}
         </div>
@@ -182,26 +174,16 @@ export default function PublishPage() {
               <label className="text-sm text-gray-400 block mb-3">¿Qué tipo de espacio tenés?</label>
               <div className="grid grid-cols-2 gap-3">
                 {(Object.entries(TYPE_LABELS) as [SpaceType, string][]).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => set("type", key)}
+                  <button key={key} type="button" onClick={() => set("type", key)}
                     className={`p-4 rounded-xl border text-sm font-medium text-left transition ${
-                      form.type === key
-                        ? "border-blue-500 bg-blue-500/10 text-white"
-                        : "border-zinc-800 text-gray-500 hover:border-zinc-600"
-                    }`}
-                  >
+                      form.type === key ? "border-blue-500 bg-blue-500/10 text-white" : "border-zinc-800 text-gray-500 hover:border-zinc-600"
+                    }`}>
                     {label}
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                disabled={!form.type}
-                onClick={() => setStep(1)}
-                className="w-full mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm"
-              >
+              <button type="button" disabled={!form.type} onClick={() => setStep(1)}
+                className="w-full mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm">
                 Continuar
               </button>
             </div>
@@ -211,23 +193,14 @@ export default function PublishPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Título del espacio</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Gimnasio en Pocitos"
-                  value={form.title}
+                <input type="text" required placeholder="Ej: Gimnasio en Pocitos" value={form.title}
                   onChange={(e) => set("title", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Ciudad</label>
-                <select
-                  required
-                  value={form.city}
-                  onChange={(e) => set("city", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition text-sm"
-                >
+                <select required value={form.city} onChange={(e) => set("city", e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition text-sm">
                   <option value="">Seleccioná una ciudad</option>
                   <option>Montevideo</option>
                   <option>Punta del Este</option>
@@ -238,36 +211,21 @@ export default function PublishPage() {
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Dirección o zona</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Av. 18 de Julio 1200"
-                  value={form.location}
+                <input type="text" required placeholder="Ej: Av. 18 de Julio 1200" value={form.location}
                   onChange={(e) => set("location", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Tráfico estimado (personas/día)</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="Ej: 500"
-                  value={form.traffic}
+                <input type="number" required placeholder="Ej: 500" value={form.traffic}
                   onChange={(e) => set("traffic", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setStep(0)} className="flex-1 border border-zinc-700 hover:border-white transition text-white py-3 rounded-xl text-sm">
-                  Atrás
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
+                <button type="button" onClick={() => setStep(0)} className="flex-1 border border-zinc-700 hover:border-white transition text-white py-3 rounded-xl text-sm">Atrás</button>
+                <button type="button" onClick={() => setStep(2)}
                   disabled={!form.title || !form.city || !form.location || !form.traffic}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm"
-                >
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm">
                   Continuar
                 </button>
               </div>
@@ -277,86 +235,43 @@ export default function PublishPage() {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">Foto del espacio (opcional)</label>
-                {imagePreview ? (
-                  <div className="relative rounded-xl overflow-hidden h-44">
-                    <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={clearImage}
-                      className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white p-1.5 rounded-full transition"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-44 border-2 border-dashed border-zinc-700 hover:border-blue-500 rounded-xl flex flex-col items-center justify-center gap-2 transition text-gray-500 hover:text-blue-400"
-                  >
-                    <ImagePlus size={28} />
-                    <span className="text-sm">Subir foto</span>
-                    <span className="text-xs text-gray-600">JPG, PNG, WEBP — máx 5MB</span>
-                  </button>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
+                <label className="text-sm text-gray-400 mb-2 block">Fotos del espacio (opcional, hasta {MAX_IMAGES})</label>
+                <ImageUploader
+                  keptUrls={[]}
+                  newPreviews={newPreviews}
+                  onAdd={handleAddFiles}
+                  onRemoveKept={() => {}}
+                  onRemoveNew={handleRemoveNew}
+                  max={MAX_IMAGES}
                 />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Formato publicitario</label>
-                <input
-                  type="text"
-                  required
-                  placeholder='Ej: Pantalla LED 55", Ploteo vehicular'
-                  value={form.format}
+                <input type="text" required placeholder='Ej: Pantalla LED 55", Ploteo vehicular' value={form.format}
                   onChange={(e) => set("format", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Precio mensual (UYU)</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="Ej: 10000"
-                  value={form.price}
+                <input type="number" required placeholder="Ej: 10000" value={form.price}
                   onChange={(e) => set("price", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Descripción</label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Contá más sobre tu espacio: características, horarios, tipo de público..."
-                  value={form.description}
+                <textarea required rows={4} placeholder="Contá más sobre tu espacio..." value={form.description}
                   onChange={(e) => set("description", e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm resize-none"
-                />
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm resize-none" />
               </div>
 
               {error && (
-                <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
-                  {error}
-                </p>
+                <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{error}</p>
               )}
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setStep(1)} className="flex-1 border border-zinc-700 hover:border-white transition text-white py-3 rounded-xl text-sm">
-                  Atrás
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 transition text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
-                >
+                <button type="button" onClick={() => setStep(1)} className="flex-1 border border-zinc-700 hover:border-white transition text-white py-3 rounded-xl text-sm">Atrás</button>
+                <button type="submit" disabled={loading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 transition text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
                   {loading && <Loader2 size={15} className="animate-spin" />}
                   Publicar espacio
                 </button>

@@ -5,6 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import ImageUploader from "@/components/ImageUploader";
+
+const MAX_IMAGES = 5;
 
 export default function EditSpacePage() {
   const router = useRouter();
@@ -16,6 +19,11 @@ export default function EditSpacePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  const [keptUrls, setKeptUrls] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+
   const [form, setForm] = useState({
     title: "", city: "", location: "", traffic: "", format: "", price: "", description: "",
   });
@@ -37,6 +45,11 @@ export default function EditSpacePage() {
         price: String(space.price ?? ""),
         description: space.description ?? "",
       });
+
+      // Cargar imágenes existentes
+      const existing: string[] = space.images ?? (space.image ? [space.image] : []);
+      setKeptUrls(existing);
+
       setLoading(false);
     };
     load();
@@ -45,15 +58,55 @@ export default function EditSpacePage() {
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const handleAddFiles = (files: FileList) => {
+    const arr = Array.from(files);
+    const remaining = MAX_IMAGES - keptUrls.length - newFiles.length;
+    const toAdd = arr.slice(0, remaining);
+    setNewFiles((prev) => [...prev, ...toAdd]);
+    setNewPreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
+  };
+
+  const handleRemoveKept = (i: number) => setKeptUrls((prev) => prev.filter((_, idx) => idx !== i));
+  const handleRemoveNew = (i: number) => {
+    setNewFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setNewPreviews((prev) => prev.filter((_, idx) => idx !== i));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError("");
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/auth"); return; }
+
+    // Subir nuevas imágenes
+    const newUrls: string[] = [];
+    for (const file of newFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("space-images")
+        .upload(path, file, { upsert: true });
+      if (uploadError) {
+        setError("Error subiendo una imagen. Intentá de nuevo.");
+        setSaving(false);
+        return;
+      }
+      const { data: { publicUrl } } = supabase.storage.from("space-images").getPublicUrl(path);
+      newUrls.push(publicUrl);
+    }
+
+    const allImages = [...keptUrls, ...newUrls];
+
     const res = await fetch(`/api/spaces/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        image: allImages[0] ?? null,
+        images: allImages.length > 0 ? allImages : null,
+      }),
     });
 
     const data = await res.json();
@@ -100,6 +153,18 @@ export default function EditSpacePage() {
         <p className="text-gray-500 text-sm mb-8">Solo podés editar si no hay contrato activo.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Fotos (hasta {MAX_IMAGES})</label>
+            <ImageUploader
+              keptUrls={keptUrls}
+              newPreviews={newPreviews}
+              onAdd={handleAddFiles}
+              onRemoveKept={handleRemoveKept}
+              onRemoveNew={handleRemoveNew}
+              max={MAX_IMAGES}
+            />
+          </div>
+
           <div>
             <label className="text-sm text-gray-400 mb-1 block">Título</label>
             <input type="text" required value={form.title} onChange={(e) => set("title", e.target.value)} className={inputClass} />

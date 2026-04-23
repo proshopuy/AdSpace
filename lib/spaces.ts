@@ -8,7 +8,8 @@ export interface Space {
   type: SpaceType;
   traffic: number;
   price: number;
-  image: string;
+  image?: string;
+  images?: string[];
   description: string;
   format: string;
   available: boolean;

@@ -20,6 +20,7 @@ export default function SpaceCard({ space }: { space: Space }) {
   const [imgError, setImgError] = useState(false);
 
   const gradient = TYPE_GRADIENTS[space.type] ?? "from-zinc-800 to-zinc-900";
+  const primaryImage = space.images?.[0] ?? space.image;
 
   return (
     <>
@@ -28,9 +29,9 @@ export default function SpaceCard({ space }: { space: Space }) {
         className="bg-zinc-900 rounded-2xl overflow-hidden group cursor-pointer transition hover:ring-1 hover:ring-blue-500/50"
       >
         <div className="overflow-hidden relative h-52">
-          {!imgError && space.image ? (
+          {!imgError && primaryImage ? (
             <img
-              src={space.image}
+              src={primaryImage}
               alt={space.title}
               onError={() => setImgError(true)}
               className="w-full h-full object-cover group-hover:scale-105 transition duration-500"

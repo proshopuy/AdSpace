@@ -28,6 +28,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     price: parseInt(body.price),
     format: body.format,
     description: body.description,
+    image: body.image ?? null,
+    images: body.images ?? null,
   }).eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
