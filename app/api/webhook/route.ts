@@ -4,8 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const resend = new Resend(process.env.RESEND_API_KEY!);
-const FROM = process.env.RESEND_FROM!;
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -25,6 +23,8 @@ export async function POST(request: Request) {
     const advertiserEmail = session.metadata?.advertiser_email;
 
     if (spaceId && userId) {
+      const resend = new Resend(process.env.RESEND_API_KEY!);
+      const FROM = process.env.RESEND_FROM ?? "onboarding@resend.dev";
       const supabase = await createClient();
 
       const { data: space } = await supabase
