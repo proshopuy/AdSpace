@@ -42,19 +42,12 @@ export default function Hero() {
 
   return (
     <section className="relative h-screen flex flex-col items-center justify-center text-center text-white overflow-hidden" style={{ zIndex: 1 }}>
-      {/* Video de fondo */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: 0 }}
-      >
-        <source src="/videos/hero.mp4" type="video/mp4" />
-      </video>
-      {/* Overlay oscuro para legibilidad del texto */}
-      <div className="absolute inset-0 bg-black/60" style={{ zIndex: 1 }} />
+      {/* Fondo gradiente */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-blue-950/30" style={{ zIndex: 0 }} />
+      {/* Glow central */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 0 }}>
+        <div className="w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
+      </div>
       <div ref={contentRef} className="flex flex-col items-center px-6 relative" style={{ zIndex: 2 }}>
         <div className="mb-5 inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs px-4 py-1.5 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
