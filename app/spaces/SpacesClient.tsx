@@ -11,7 +11,7 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("Todas");
   const [type, setType] = useState<SpaceType | "all">("all");
-  const [maxPrice, setMaxPrice] = useState(1000);
+  const [maxPrice, setMaxPrice] = useState(60000);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sort, setSort] = useState<"price_asc" | "price_desc" | "traffic">("traffic");
 
@@ -91,14 +91,14 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
 
               <div>
                 <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">
-                  Precio máximo: <span className="text-white">USD {maxPrice.toLocaleString()}</span>
+                  Precio máximo: <span className="text-white">UYU {maxPrice.toLocaleString()}</span>
                 </label>
-                <input type="range" min={50} max={1000} step={25} value={maxPrice}
+                <input type="range" min={2000} max={60000} step={1000} value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-blue-500" />
                 <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>USD 50</span>
-                  <span>USD 1.000</span>
+                  <span>UYU 2.000</span>
+                  <span>UYU 60.000</span>
                 </div>
               </div>
 
@@ -110,7 +110,7 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
                 </button>
               </div>
 
-              <button onClick={() => { setSearch(""); setCity("Todas"); setType("all"); setMaxPrice(1000); setOnlyAvailable(false); }}
+              <button onClick={() => { setSearch(""); setCity("Todas"); setType("all"); setMaxPrice(60000); setOnlyAvailable(false); }}
                 className="text-xs text-gray-500 hover:text-white transition">
                 Limpiar filtros
               </button>
