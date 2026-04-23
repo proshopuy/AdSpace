@@ -6,9 +6,6 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "AdSpace — Publicidad física real",
   description: "Marketplace para publicidad en espacios físicos: gimnasios, autos, máquinas y más.",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
