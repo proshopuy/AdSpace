@@ -21,14 +21,29 @@ export async function GET(request: Request) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const meta = user.user_metadata ?? {};
-    await supabase.from("profiles").upsert({
-      id: user.id,
-      email: user.email,
-      name: meta.name ?? null,
-      phone: meta.phone ?? null,
-      role: meta.role ?? "advertiser",
-    }, { onConflict: "id" });
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!existing) {
+      // Usuario nuevo — leer rol del cookie
+      const cookieHeader = request.headers.get("cookie") ?? "";
+      const pendingRole = cookieHeader.match(/pending_role=([^;]+)/)?.[1] ?? "advertiser";
+      const meta = user.user_metadata ?? {};
+
+      await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email,
+        name: meta.full_name ?? meta.name ?? null,
+        phone: meta.phone ?? null,
+        role: meta.role ?? pendingRole,
+      });
+    } else {
+      // Usuario existente — solo actualizar email por si cambió
+      await supabase.from("profiles").update({ email: user.email }).eq("id", user.id);
+    }
   }
 
   return NextResponse.redirect(`${origin}/dashboard`);
