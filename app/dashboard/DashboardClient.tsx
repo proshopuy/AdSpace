@@ -154,8 +154,8 @@ function OwnerSpaces({ spaces, onRefresh }: { spaces: any[]; onRefresh: () => vo
         {spaces.map((space: any) => (
           <div key={space.id} className="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
-              {space.image ? (
-                <img src={space.image} className="w-14 h-14 rounded-xl object-cover shrink-0" alt=""
+              {(space.images?.[0] ?? space.image) ? (
+                <img src={space.images?.[0] ?? space.image} className="w-14 h-14 rounded-xl object-cover shrink-0" alt=""
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <div className="w-14 h-14 rounded-xl bg-zinc-800 shrink-0" />
@@ -172,18 +172,13 @@ function OwnerSpaces({ spaces, onRefresh }: { spaces: any[]; onRefresh: () => vo
                 <p className="text-gray-500 text-xs">/mes</p>
               </div>
               <span className={`text-xs px-2 py-1 rounded-full border hidden sm:block ${
-                space.available
+                !space.approved
+                  ? "border-yellow-500/30 text-yellow-400 bg-yellow-400/10"
+                  : space.available
                   ? "border-green-500/30 text-green-400 bg-green-400/10"
                   : "border-zinc-700 text-gray-500"
               }`}>
-                {space.available ? "Disponible" : "Ocupado"}
-              </span>
-              <span className={`text-xs px-2 py-1 rounded-full border hidden sm:block ${
-                space.approved
-                  ? "border-blue-500/30 text-blue-400 bg-blue-400/10"
-                  : "border-yellow-500/30 text-yellow-400 bg-yellow-400/10"
-              }`}>
-                {space.approved ? "Aprobado" : "En revisión"}
+                {!space.approved ? "En revisión" : space.available ? "Disponible" : "Ocupado"}
               </span>
 
               <div className="flex items-center gap-2">
