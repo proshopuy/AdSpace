@@ -16,14 +16,12 @@ export default function Hero() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Entrada inicial
       const tl = gsap.timeline();
       tl.fromTo(titleRef.current, { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" })
         .fromTo(subtitleRef.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9 }, "-=0.7")
         .fromTo(ctaRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, "-=0.5")
         .fromTo(scrollRef.current, { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=0.2");
 
-      // Fade out al scrollear
       gsap.to(contentRef.current, {
         opacity: 0,
         y: -60,
@@ -41,14 +39,11 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative h-screen flex flex-col items-center justify-center text-center text-white overflow-hidden" style={{ zIndex: 1 }}>
-      {/* Fondo gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-blue-950/30" style={{ zIndex: 0 }} />
-      {/* Glow central */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 0 }}>
-        <div className="w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
-      </div>
-      <div ref={contentRef} className="flex flex-col items-center px-6 relative" style={{ zIndex: 2 }}>
+    <section
+      className="relative h-screen flex flex-col items-center justify-center text-center text-white overflow-hidden"
+      style={{ zIndex: 1 }}
+    >
+      <div ref={contentRef} className="flex flex-col items-center px-6 relative z-10">
         <div className="mb-5 inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs px-4 py-1.5 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
           Plataforma de publicidad física en Uruguay
@@ -87,8 +82,7 @@ export default function Hero() {
 
       <div
         ref={scrollRef}
-        className="absolute bottom-10 flex flex-col items-center gap-2 text-gray-600 text-xs opacity-0"
-        style={{ zIndex: 2 }}
+        className="absolute bottom-10 flex flex-col items-center gap-2 text-gray-600 text-xs opacity-0 z-10"
       >
         <span>Scroll</span>
         <div className="w-px h-8 bg-gradient-to-b from-gray-600 to-transparent animate-pulse" />
