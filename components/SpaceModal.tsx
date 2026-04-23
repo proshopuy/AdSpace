@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, MapPin, Users, Monitor, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, MapPin, Users, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
 import { Space, TYPE_LABELS } from "@/lib/spaces";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 interface Props {
   space: Space;
@@ -14,7 +13,6 @@ interface Props {
 
 export default function SpaceModal({ space, open, onClose }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
 
   const images = space.images && space.images.length > 0
@@ -28,28 +26,6 @@ export default function SpaceModal({ space, open, onClose }: Props) {
   }, [open]);
 
   if (!open) return null;
-
-  const handleContratar = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth"); return; }
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId: space.id, title: space.title, price: space.price }),
-      });
-      const { url, error } = await res.json();
-      if (error || !url) { alert("Error al iniciar el pago. Intentá de nuevo."); return; }
-      window.location.href = url;
-    } catch {
-      alert("Error de conexión. Intentá de nuevo.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
@@ -130,10 +106,9 @@ export default function SpaceModal({ space, open, onClose }: Props) {
               <span className="text-gray-500 text-sm">/mes</span>
             </div>
             {space.available ? (
-              <button onClick={handleContratar} disabled={loading}
-                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-60 transition text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
-                {loading && <Loader2 size={16} className="animate-spin" />}
-                {loading ? "Redirigiendo..." : "Contratar espacio"}
+              <button onClick={() => router.push(`/spaces/${space.id}`)}
+                className="bg-blue-600 hover:bg-blue-500 transition text-white px-6 py-3 rounded-xl font-semibold">
+                Planificar campaña
               </button>
             ) : (
               <span className="text-gray-500 text-sm border border-gray-700 px-6 py-3 rounded-xl">No disponible</span>

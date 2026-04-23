@@ -335,7 +335,10 @@ function AdvertiserContracts({ contracts, userId, onRefresh }: { contracts: any[
                   {startDate && (
                     <p className="text-gray-600 text-xs flex items-center gap-1 mt-1">
                       <Calendar size={11} />
-                      Inicio: {startDate}
+                      {c.end_date
+                        ? `${startDate} → ${new Date(c.end_date).toLocaleDateString("es-UY", { day: "2-digit", month: "short", year: "numeric" })}`
+                        : `Inicio: ${startDate}`}
+                      {c.duration_days ? ` · ${c.duration_days} días` : ""}
                     </p>
                   )}
                 </div>

@@ -26,10 +26,11 @@ export async function POST(request: Request) {
     const preapproval = await mpFetch(`/preapproval/${authorizedPayment.preapproval_id}`).catch(() => null);
     if (!preapproval) return NextResponse.json({ received: true });
 
-    const [spaceId, userId, advertiserEmail] = (preapproval.external_reference ?? "").split("|");
+    const parts = (preapproval.external_reference ?? "").split("|");
+    const [spaceId, userId, advertiserEmail, startDate, endDate, days, wantsDesign] = parts;
     if (!spaceId || !userId) return NextResponse.json({ received: true });
 
-    await handleContract(spaceId, userId, advertiserEmail, String(body.data.id));
+    await handleContract(spaceId, userId, advertiserEmail, String(body.data.id), { startDate, endDate, days: parseInt(days ?? "30"), wantsDesign: wantsDesign === "1" });
   }
 
   // Pago único (fallback por si acaso)
@@ -37,16 +38,19 @@ export async function POST(request: Request) {
     const payment = await mpFetch(`/v1/payments/${body.data.id}`).catch(() => null);
     if (!payment || payment.status !== "approved") return NextResponse.json({ received: true });
 
-    const [spaceId, userId, advertiserEmail] = (payment.external_reference ?? "").split("|");
+    const parts = (payment.external_reference ?? "").split("|");
+    const [spaceId, userId, advertiserEmail, startDate, endDate, days, wantsDesign] = parts;
     if (!spaceId || !userId) return NextResponse.json({ received: true });
 
-    await handleContract(spaceId, userId, advertiserEmail, String(body.data.id));
+    await handleContract(spaceId, userId, advertiserEmail, String(body.data.id), { startDate, endDate, days: parseInt(days ?? "30"), wantsDesign: wantsDesign === "1" });
   }
 
   return NextResponse.json({ received: true });
 }
 
-async function handleContract(spaceId: string, userId: string, advertiserEmail: string, paymentId: string) {
+interface CampaignMeta { startDate?: string; endDate?: string; days?: number; wantsDesign?: boolean; }
+
+async function handleContract(spaceId: string, userId: string, advertiserEmail: string, paymentId: string, campaign: CampaignMeta = {}) {
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const FROM = process.env.RESEND_FROM ?? "onboarding@resend.dev";
   const supabase = await createClient();
@@ -57,12 +61,16 @@ async function handleContract(spaceId: string, userId: string, advertiserEmail: 
     .eq("id", parseInt(spaceId))
     .single();
 
+  const contractStart = campaign.startDate ?? new Date().toISOString().split("T")[0];
   await supabase.from("contracts").upsert(
     {
       space_id: parseInt(spaceId),
       advertiser_id: userId,
       status: "active",
-      start_date: new Date().toISOString().split("T")[0],
+      start_date: contractStart,
+      end_date: campaign.endDate ?? null,
+      duration_days: campaign.days ?? null,
+      design_included: campaign.wantsDesign ?? false,
       payment_id: paymentId,
     },
     { onConflict: "payment_id" }

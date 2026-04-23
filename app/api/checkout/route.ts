@@ -10,28 +10,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const { spaceId, title, price } = await request.json();
+    const { spaceId, title, startDate, endDate, days, totalPrice, wantsDesign } = await request.json();
     const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
     const body = {
       items: [
         {
           id: String(spaceId),
-          title: title,
-          description: "Publicidad mensual — AdSpace",
+          title: `Campaña publicitaria en ${title}`,
+          description: `Campaña ${days} días — AdSpace`,
           quantity: 1,
-          unit_price: Number(price),
+          unit_price: Number(totalPrice),
           currency_id: "UYU",
         },
       ],
       back_urls: {
         success: `${origin}/checkout/success?space_id=${spaceId}`,
-        failure: `${origin}/spaces`,
+        failure: `${origin}/spaces/${spaceId}`,
         pending: `${origin}/checkout/success?space_id=${spaceId}`,
       },
       auto_return: "approved",
       notification_url: `${process.env.NEXT_PUBLIC_URL ?? origin}/api/webhook`,
-      external_reference: `${spaceId}|${user.id}|${user.email ?? ""}`,
+      external_reference: `${spaceId}|${user.id}|${user.email ?? ""}|${startDate}|${endDate}|${days}|${wantsDesign ? "1" : "0"}`,
     };
 
     const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
