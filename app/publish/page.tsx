@@ -299,11 +299,11 @@ export default function PublishPage() {
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">Precio mensual (USD)</label>
+                <label className="text-sm text-gray-400 mb-1 block">Precio mensual (UYU)</label>
                 <input
                   type="number"
                   required
-                  placeholder="Ej: 250"
+                  placeholder="Ej: 10000"
                   value={form.price}
                   onChange={(e) => set("price", e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
