@@ -80,7 +80,7 @@ export default function PublishPage() {
       imageUrl = publicUrl;
     }
 
-    const { data: inserted, error } = await supabase.from("spaces").insert({
+    const { error } = await supabase.from("spaces").insert({
       owner_id: user.id,
       type: form.type,
       title: form.title,
@@ -93,16 +93,24 @@ export default function PublishPage() {
       image: imageUrl,
       available: true,
       approved: false,
-    }).select("id").single();
+    });
 
     if (error) {
       setError("Hubo un error al publicar. Intentá de nuevo.");
     } else {
-      if (inserted?.id) {
+      const { data: latest } = await supabase
+        .from("spaces")
+        .select("id")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (latest?.id) {
         const review = await fetch("/api/review-space", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spaceId: inserted.id }),
+          body: JSON.stringify({ spaceId: latest.id }),
         }).then((r) => r.json()).catch(() => ({ approved: false }));
         setAutoApproved(review.approved === true);
       }
