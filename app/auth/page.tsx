@@ -11,7 +11,7 @@ type Mode = "login" | "register";
 
 export default function AuthPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
       <AuthForm />
     </Suspense>
   );
