@@ -41,8 +41,21 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative h-screen flex flex-col items-center justify-center text-center text-white" style={{ zIndex: 1 }}>
-      <div ref={contentRef} className="flex flex-col items-center px-6">
+    <section className="relative h-screen flex flex-col items-center justify-center text-center text-white overflow-hidden" style={{ zIndex: 1 }}>
+      {/* Video de fondo */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ zIndex: 0 }}
+      >
+        <source src="/videos/hero.mp4" type="video/mp4" />
+      </video>
+      {/* Overlay oscuro para legibilidad del texto */}
+      <div className="absolute inset-0 bg-black/60" style={{ zIndex: 1 }} />
+      <div ref={contentRef} className="flex flex-col items-center px-6 relative" style={{ zIndex: 2 }}>
         <div className="mb-5 inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs px-4 py-1.5 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
           Plataforma de publicidad física en Uruguay
@@ -82,6 +95,7 @@ export default function Hero() {
       <div
         ref={scrollRef}
         className="absolute bottom-10 flex flex-col items-center gap-2 text-gray-600 text-xs opacity-0"
+        style={{ zIndex: 2 }}
       >
         <span>Scroll</span>
         <div className="w-px h-8 bg-gradient-to-b from-gray-600 to-transparent animate-pulse" />

@@ -11,19 +11,23 @@ export async function GET(request: Request) {
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      return NextResponse.redirect(`${origin}/auth?error=link_invalido`);
-    }
+    if (error) return NextResponse.redirect(`${origin}/auth?error=link_invalido`);
+    await syncProfileEmail(supabase);
     return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
-    if (error) {
-      return NextResponse.redirect(`${origin}/auth?error=link_invalido`);
-    }
+    if (error) return NextResponse.redirect(`${origin}/auth?error=link_invalido`);
+    await syncProfileEmail(supabase);
     return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   return NextResponse.redirect(`${origin}/auth?error=link_invalido`);
+}
+
+async function syncProfileEmail(supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from("profiles").upsert({ id: user.id, email: user.email }, { onConflict: "id" });
 }

@@ -37,6 +37,7 @@ export async function POST(request: Request) {
     metadata: {
       space_id: spaceId,
       user_id: user.id,
+      advertiser_email: user.email ?? "",
     },
   });
 
