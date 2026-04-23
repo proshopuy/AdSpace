@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Building2, Megaphone, Loader2, Mail } from "lucide-react";
@@ -10,6 +10,14 @@ type Role = "advertiser" | "owner";
 type Mode = "login" | "register";
 
 export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthForm />
+    </Suspense>
+  );
+}
+
+function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("login");
