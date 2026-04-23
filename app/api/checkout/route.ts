@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { MercadoPagoConfig, Preference } from "mercadopago";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -14,39 +13,46 @@ export async function POST(request: Request) {
     const { spaceId, title, price } = await request.json();
     const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
-    const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
-    const preference = new Preference(client);
-
-    const result = await preference.create({
-      body: {
-        items: [
-          {
-            id: String(spaceId),
-            title: title,
-            description: "Publicidad mensual — AdSpace",
-            quantity: 1,
-            unit_price: price,
-            currency_id: "UYU",
-          },
-        ],
-        back_urls: {
-          success: `${origin}/checkout/success?space_id=${spaceId}`,
-          failure: `${origin}/spaces`,
-          pending: `${origin}/checkout/success?space_id=${spaceId}`,
+    const body = {
+      items: [
+        {
+          id: String(spaceId),
+          title: title,
+          description: "Publicidad mensual — AdSpace",
+          quantity: 1,
+          unit_price: Number(price),
+          currency_id: "UYU",
         },
-        auto_return: "approved",
-        notification_url: `${process.env.NEXT_PUBLIC_URL ?? origin}/api/webhook`,
-        external_reference: `${spaceId}|${user.id}|${user.email ?? ""}`,
+      ],
+      back_urls: {
+        success: `${origin}/checkout/success?space_id=${spaceId}`,
+        failure: `${origin}/spaces`,
+        pending: `${origin}/checkout/success?space_id=${spaceId}`,
       },
+      auto_return: "approved",
+      notification_url: `${process.env.NEXT_PUBLIC_URL ?? origin}/api/webhook`,
+      external_reference: `${spaceId}|${user.id}|${user.email ?? ""}`,
+    };
+
+    const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify(body),
     });
 
-    if (!result.init_point) {
-      return NextResponse.json({ error: "No se pudo crear el pago" }, { status: 500 });
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("MP error:", JSON.stringify(data));
+      return NextResponse.json({ error: data.message ?? "Error de MercadoPago" }, { status: 500 });
     }
 
-    return NextResponse.json({ url: result.init_point });
+    return NextResponse.json({ url: data.init_point });
   } catch (err: any) {
-    console.error("MP checkout error:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error("MP checkout error:", err?.message ?? err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
