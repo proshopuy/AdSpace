@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
   if (!space) return NextResponse.json({ error: "Espacio no encontrado" }, { status: 404 });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ approved: false, reason: "Revisión manual pendiente" });
   }
@@ -39,22 +39,20 @@ Rechazá únicamente si hay: contenido inapropiado, datos claramente absurdos (t
 En caso de duda, aprobá.`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 150,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 150, temperature: 0 },
+        }),
+      }
+    );
 
     const aiData = await res.json();
-    const text = (aiData.content?.[0]?.text ?? "{}").trim();
+    const text = (aiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}").trim();
     const result = JSON.parse(text);
 
     if (result.approved === true) {
