@@ -10,8 +10,10 @@ export default async function SpacesPage() {
     .eq("approved", true)
     .order("created_at", { ascending: false });
 
-  // Use Supabase data if available, fallback to mock data
-  const spaces = (data && data.length > 0) ? data : SPACES;
+  // Real approved spaces first, then mock demo spaces (excluding conflicting IDs)
+  const realIds = new Set((data ?? []).map((s: any) => s.id));
+  const mockSpaces = SPACES.filter((s) => !realIds.has(s.id));
+  const spaces = [...(data ?? []), ...mockSpaces];
 
   return <SpacesClient spaces={spaces} />;
 }
