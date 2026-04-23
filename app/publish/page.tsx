@@ -96,7 +96,7 @@ export default function PublishPage() {
     });
 
     if (error) {
-      setError("Hubo un error al publicar. Intentá de nuevo.");
+      setError(error.message || "Hubo un error al publicar. Intentá de nuevo.");
     } else {
       const { data: latest } = await supabase
         .from("spaces")
