@@ -67,8 +67,9 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
           totalPrice,
         }),
       });
-      const { url, error } = await res.json();
-      if (error || !url) { alert("Error al iniciar el pago. Intentá de nuevo."); return; }
+      const data = await res.json();
+      const { url, error, detail } = data;
+      if (error || !url) { alert(`Error: ${error}\n${JSON.stringify(detail)}`); return; }
       window.location.href = url;
     } catch {
       alert("Error de conexión. Intentá de nuevo.");

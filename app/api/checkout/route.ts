@@ -47,7 +47,12 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       console.error("MP error:", JSON.stringify(data));
-      return NextResponse.json({ error: data.message ?? "Error de MercadoPago" }, { status: 500 });
+      return NextResponse.json({ error: data.message ?? "Error de MercadoPago", detail: data }, { status: 500 });
+    }
+
+    if (!data.init_point) {
+      console.error("MP no init_point:", JSON.stringify(data));
+      return NextResponse.json({ error: "MP no devolvió URL", detail: data }, { status: 500 });
     }
 
     return NextResponse.json({ url: data.init_point });
