@@ -41,7 +41,7 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
 
   const days = useMemo(() => diffDays(startDate, endDate), [startDate, endDate]);
   const isValid = days >= 30 && space.available;
-  const campaignPrice = days * pricePerDay;
+  const campaignPrice = Math.round((days * space.price) / 30);
   const totalPrice = campaignPrice + (wantsDesign ? DESIGN_FEE : 0);
 
   const handleStartChange = (val: string) => {
