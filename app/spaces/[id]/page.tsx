@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { SPACES, TYPE_LABELS, Space } from "@/lib/spaces";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, MapPin, Users, Shield, CheckCircle, Headphones, Clock, Layers, Zap } from "lucide-react";
+import { MapPin, Users, Shield, CheckCircle, Headphones, Clock, Layers, Zap } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import CampaignConfigurator from "@/components/CampaignConfigurator";
 
 function getLoopInfo(type: string): { frequency: string; loopDuration: string; impressionsRatio: number } {
@@ -54,10 +54,7 @@ export default async function SpaceDetailPage({ params }: { params: Promise<{ id
     <main className="bg-black min-h-screen pb-32">
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        <Link href="/spaces" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition text-sm mb-8">
-          <ArrowLeft size={15} />
-          Explorar espacios
-        </Link>
+        <BackButton />
 
         {/* HERO */}
         <div className="grid md:grid-cols-5 gap-8 mb-10">

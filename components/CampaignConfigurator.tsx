@@ -152,7 +152,7 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
               <Paintbrush size={14} className="text-purple-400" />
               <p className="text-white text-sm font-medium">No tengo diseño — quiero que lo creen por mí</p>
             </div>
-            <p className="text-gray-500 text-xs mt-0.5">Nuestro equipo de diseño crea el creativo por vos <span className="text-purple-400 font-medium">+UYU {DESIGN_FEE.toLocaleString()}</span></p>
+            <p className="text-gray-500 text-xs mt-0.5">Nuestro equipo de diseño crea el creativo por vos <span className="text-purple-400 font-medium">· contactar AdSpace</span></p>
           </div>
         </label>
 

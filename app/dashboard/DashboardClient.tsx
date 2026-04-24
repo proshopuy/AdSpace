@@ -187,15 +187,13 @@ function OwnerSpaces({ spaces, onRefresh }: { spaces: any[]; onRefresh: () => vo
                   title="Editar">
                   <Pencil size={15} />
                 </Link>
-                {space.available && (
-                  <button
-                    onClick={() => handleDelete(space.id)}
-                    disabled={deleting === space.id}
-                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition disabled:opacity-50"
-                    title="Eliminar">
-                    <Trash2 size={15} />
-                  </button>
-                )}
+                <button
+                  onClick={() => handleDelete(space.id)}
+                  disabled={deleting === space.id}
+                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition disabled:opacity-50"
+                  title="Eliminar">
+                  <Trash2 size={15} />
+                </button>
               </div>
             </div>
           </div>
