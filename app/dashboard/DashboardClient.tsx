@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, MapPin, Users, TrendingUp,
   Plus, LogOut, CheckCircle, Clock, XCircle, Calendar, DollarSign,
-  Pencil, Trash2, AlertCircle
+  Pencil, Trash2, AlertCircle, Phone, Mail, User
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { TYPE_LABELS, SpaceType } from "@/lib/spaces";
@@ -249,6 +249,12 @@ function OwnerContracts({ contracts, userId, onRefresh }: { contracts: any[]; us
                 </div>
               </div>
 
+              {c.status === "active" && c.profiles && (
+                <div className="mt-4">
+                  <ContactCard title="Datos del anunciante" profile={c.profiles} />
+                </div>
+              )}
+
               {canAct && (
                 <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-3">
                   <p className="text-orange-400 text-sm flex-1">El anunciante solicitó cancelar este contrato.</p>
@@ -358,15 +364,20 @@ function AdvertiserContracts({ contracts, userId, onRefresh }: { contracts: any[
               </div>
 
               {c.status === "active" && (
-                <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-end">
-                  <button onClick={() => {
-                    if (confirm("¿Solicitás cancelar este contrato? El dueño del espacio deberá aprobarlo.")) {
-                      handleCancel(c.id, "request");
-                    }
-                  }} disabled={loading === c.id}
-                    className="text-sm px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50">
-                    Solicitar cancelación
-                  </button>
+                <div className="mt-4 pt-4 border-t border-zinc-800 space-y-4">
+                  {c.owner_profile && (
+                    <ContactCard title="Contacto del dueño del espacio" profile={c.owner_profile} />
+                  )}
+                  <div className="flex justify-end">
+                    <button onClick={() => {
+                      if (confirm("¿Solicitás cancelar este contrato? El dueño del espacio deberá aprobarlo.")) {
+                        handleCancel(c.id, "request");
+                      }
+                    }} disabled={loading === c.id}
+                      className="text-sm px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50">
+                      Solicitar cancelación
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -392,6 +403,41 @@ function AdvertiserContracts({ contracts, userId, onRefresh }: { contracts: any[
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ContactCard({ title, profile }: {
+  title: string;
+  profile: { name?: string | null; email?: string | null; phone?: string | null };
+}) {
+  return (
+    <div className="bg-zinc-800/50 rounded-xl p-4">
+      <p className="text-gray-500 text-xs mb-3">{title}</p>
+      <div className="space-y-2">
+        {profile.name && (
+          <div className="flex items-center gap-2">
+            <User size={13} className="text-gray-500 shrink-0" />
+            <span className="text-white text-sm font-medium">{profile.name}</span>
+          </div>
+        )}
+        {profile.email && (
+          <div className="flex items-center gap-2">
+            <Mail size={13} className="text-gray-500 shrink-0" />
+            <a href={`mailto:${profile.email}`} className="text-blue-400 text-sm hover:text-blue-300 transition">
+              {profile.email}
+            </a>
+          </div>
+        )}
+        {profile.phone && (
+          <div className="flex items-center gap-2">
+            <Phone size={13} className="text-gray-500 shrink-0" />
+            <a href={`tel:${profile.phone}`} className="text-gray-300 text-sm hover:text-white transition">
+              {profile.phone}
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
