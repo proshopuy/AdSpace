@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { Space } from "@/lib/spaces";
 import { Loader2, Calendar, Paintbrush, ChevronRight } from "lucide-react";
 
-const DESIGN_FEE = 5000;
-
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
@@ -36,13 +34,12 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
 
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(defaultEnd);
-  const [wantsDesign, setWantsDesign] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const days = useMemo(() => diffDays(startDate, endDate), [startDate, endDate]);
   const isValid = days >= 30 && space.available;
   const campaignPrice = Math.round((days * space.price) / 30);
-  const totalPrice = campaignPrice + (wantsDesign ? DESIGN_FEE : 0);
+  const totalPrice = campaignPrice;
 
   const handleStartChange = (val: string) => {
     setStartDate(val);
@@ -68,7 +65,6 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
           endDate,
           days,
           totalPrice,
-          wantsDesign,
         }),
       });
       const { url, error } = await res.json();
@@ -128,33 +124,23 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
           )}
         </div>
 
-        {/* Upsell diseño */}
-        <label className="flex items-start gap-3 cursor-pointer group">
-          <div className="relative mt-0.5">
-            <input
-              type="checkbox"
-              checked={wantsDesign}
-              onChange={(e) => setWantsDesign(e.target.checked)}
-              className="sr-only"
-            />
-            <div className={`w-5 h-5 rounded-md border-2 transition flex items-center justify-center ${
-              wantsDesign ? "bg-blue-600 border-blue-600" : "border-zinc-600 group-hover:border-zinc-400"
-            }`}>
-              {wantsDesign && (
-                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                  <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </div>
+        {/* Diseño */}
+        <div className="flex items-start gap-3 bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
+          <div className="w-9 h-9 rounded-lg bg-purple-600/15 flex items-center justify-center shrink-0 mt-0.5">
+            <Paintbrush size={16} className="text-purple-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <Paintbrush size={14} className="text-purple-400" />
-              <p className="text-white text-sm font-medium">No tengo diseño — quiero que lo creen por mí</p>
-            </div>
-            <p className="text-gray-500 text-xs mt-0.5">Nuestro equipo de diseño crea el creativo por vos <span className="text-purple-400 font-medium">· contactar AdSpace</span></p>
+          <div className="flex-1">
+            <p className="text-white text-sm font-medium">¿No tenés el diseño?</p>
+            <p className="text-gray-500 text-xs mt-0.5 mb-3">Pedí una cotización a nuestro equipo y te ayudamos a crear el creativo.</p>
+            <a
+              href={`mailto:admin.Adspace@gmail.com?subject=Cotización%20de%20creativo%20—%20${encodeURIComponent(space.title)}&body=Hola%2C%20me%20interesa%20cotizar%20el%20diseño%20del%20creativo%20para%20el%20espacio%20"${encodeURIComponent(space.title)}".%0A%0AGracias.`}
+              className="inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition text-xs font-medium border border-purple-500/30 hover:border-purple-400/50 rounded-lg px-3 py-1.5"
+            >
+              <Paintbrush size={12} />
+              Pedir cotización de creativo
+            </a>
           </div>
-        </label>
+        </div>
 
         {/* Desglose de precio */}
         <div className="border-t border-zinc-800 pt-5 space-y-2">
@@ -162,12 +148,6 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
             <span className="text-gray-400">Campaña ({days} días × UYU {pricePerDay.toLocaleString()}/día)</span>
             <span className="text-white">UYU {campaignPrice.toLocaleString()}</span>
           </div>
-          {wantsDesign && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Servicio de diseño</span>
-              <span className="text-purple-400">+UYU {DESIGN_FEE.toLocaleString()}</span>
-            </div>
-          )}
           <div className="flex justify-between font-bold text-base pt-2 border-t border-zinc-800">
             <span className="text-white">Total</span>
             <span className="text-blue-400">UYU {totalPrice.toLocaleString()}</span>
