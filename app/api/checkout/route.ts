@@ -12,6 +12,7 @@ export async function POST(request: Request) {
 
     const { spaceId, title, startDate, endDate, days, totalPrice, wantsDesign } = await request.json();
     const origin = request.headers.get("origin") ?? "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_URL ?? origin;
 
     const body = {
       items: [
@@ -25,12 +26,12 @@ export async function POST(request: Request) {
         },
       ],
       back_urls: {
-        success: `${origin}/checkout/success?space_id=${spaceId}`,
-        failure: `${origin}/spaces/${spaceId}`,
-        pending: `${origin}/checkout/success?space_id=${spaceId}`,
+        success: `${baseUrl}/checkout/success?space_id=${spaceId}`,
+        failure: `${baseUrl}/spaces/${spaceId}`,
+        pending: `${baseUrl}/checkout/success?space_id=${spaceId}`,
       },
       auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_URL ?? origin}/api/webhook`,
+      notification_url: `${baseUrl}/api/webhook`,
       external_reference: `${spaceId}|${user.id}|${user.email ?? ""}|${startDate}|${endDate}|${days}|${wantsDesign ? "1" : "0"}`,
     };
 
