@@ -64,7 +64,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-white font-bold text-xl tracking-tight">
-          Ad<span className="text-blue-500">Space</span>
+          Ad<span className="text-blue-500">Spots</span>
         </Link>
 
         {/* Desktop links */}

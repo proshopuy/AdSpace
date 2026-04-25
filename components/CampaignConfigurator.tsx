@@ -134,7 +134,7 @@ export default function CampaignConfigurator({ space, pricePerDay }: Props) {
             <p className="text-white text-sm font-medium">¿No tenés el diseño?</p>
             <p className="text-gray-500 text-xs mt-0.5 mb-3">Pedí una cotización a nuestro equipo y te ayudamos a crear el creativo.</p>
             <a
-              href={`mailto:admin.Adspace@gmail.com?subject=Cotización%20de%20creativo%20—%20${encodeURIComponent(space.title)}&body=Hola%2C%20me%20interesa%20cotizar%20el%20diseño%20del%20creativo%20para%20el%20espacio%20"${encodeURIComponent(space.title)}".%0A%0AGracias.`}
+              href={`mailto:admin.Adspots@gmail.com?subject=Cotización%20de%20creativo%20—%20${encodeURIComponent(space.title)}&body=Hola%2C%20me%20interesa%20cotizar%20el%20diseño%20del%20creativo%20para%20el%20espacio%20"${encodeURIComponent(space.title)}".%0A%0AGracias.`}
               className="inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition text-xs font-medium border border-purple-500/30 hover:border-purple-400/50 rounded-lg px-3 py-1.5"
             >
               <Paintbrush size={12} />

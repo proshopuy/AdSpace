@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         {
           id: String(spaceId),
           title: `Campaña publicitaria en ${title}`,
-          description: `Campaña ${days} días — AdSpace`,
+          description: `Campaña ${days} días — AdSpots`,
           quantity: 1,
           unit_price: Number(totalPrice),
           currency_id: "UYU",

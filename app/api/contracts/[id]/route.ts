@@ -24,7 +24,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const FROM = process.env.RESEND_FROM ?? "onboarding@resend.dev";
-  const appUrl = process.env.NEXT_PUBLIC_URL ?? "https://adspace.uy";
+  const appUrl = process.env.NEXT_PUBLIC_URL ?? "https://adspots.com.uy";
 
   const spaceName = contract.spaces?.title ?? "el espacio";
   const advertiserEmail = (contract.profiles as any)?.email;
@@ -52,7 +52,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await resend.emails.send({
         from: FROM,
         to: recipientEmail,
-        subject: `Solicitud de cancelación de contrato — AdSpace`,
+        subject: `Solicitud de cancelación de contrato — AdSpots`,
         html: `
 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#09090b;padding:40px 32px;border-radius:16px;">
   <h1 style="color:#fff;font-size:22px;margin:0 0 24px;">Ad<span style="color:#3b82f6;">Space</span></h1>
@@ -66,7 +66,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   <a href="${appUrl}/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:14px;">
     Ver en dashboard
   </a>
-  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpace · Publicidad física en Uruguay</p>
+  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpots · Publicidad física en Uruguay</p>
 </div>`,
       });
     }
@@ -91,7 +91,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await resend.emails.send({
         from: FROM,
         to: requesterEmail,
-        subject: `Cancelación aprobada — AdSpace`,
+        subject: `Cancelación aprobada — AdSpots`,
         html: `
 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#09090b;padding:40px 32px;border-radius:16px;">
   <h1 style="color:#fff;font-size:22px;margin:0 0 24px;">Ad<span style="color:#3b82f6;">Space</span></h1>
@@ -102,7 +102,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   <a href="${appUrl}/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:14px;">
     Ver dashboard
   </a>
-  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpace · Publicidad física en Uruguay</p>
+  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpots · Publicidad física en Uruguay</p>
 </div>`,
       });
     }

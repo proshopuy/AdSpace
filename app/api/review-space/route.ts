@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ approved: false, reason: "Revisión manual pendiente" });
   }
 
-  const prompt = `Sos un moderador de AdSpace, un marketplace de espacios publicitarios físicos en Uruguay.
+  const prompt = `Sos un moderador de AdSpots, un marketplace de espacios publicitarios físicos en Uruguay.
 Revisá si esta publicación es válida y coherente:
 - Tipo: ${space.type}
 - Título: ${space.title}

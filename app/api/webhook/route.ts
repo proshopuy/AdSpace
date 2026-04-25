@@ -82,7 +82,7 @@ async function handleContract(spaceId: string, userId: string, paymentId: string
     { onConflict: "payment_id" }
   );
 
-  const appUrl = process.env.NEXT_PUBLIC_URL ?? "https://adspace.uy";
+  const appUrl = process.env.NEXT_PUBLIC_URL ?? "https://adspots.com.uy";
   const spaceName = space?.title ?? "tu espacio";
   const spaceCity = space?.city ?? "";
   const spacePrice = space?.price ?? 0;
@@ -91,7 +91,7 @@ async function handleContract(spaceId: string, userId: string, paymentId: string
     await resend.emails.send({
       from: FROM,
       to: advertiserProfile.email,
-      subject: `¡Tu campaña en AdSpace está activa!`,
+      subject: `¡Tu campaña en AdSpots está activa!`,
       html: emailAdvertiser({
         spaceName, spaceCity, spacePrice, appUrl,
         startDate: campaign.startDate, endDate: campaign.endDate, days: campaign.days,
@@ -106,7 +106,7 @@ async function handleContract(spaceId: string, userId: string, paymentId: string
     await resend.emails.send({
       from: FROM,
       to: ownerProfile.email,
-      subject: `Nueva campaña en tu espacio — AdSpace`,
+      subject: `Nueva campaña en tu espacio — AdSpots`,
       html: emailOwner({
         spaceName, spacePrice, appUrl,
         ownerName: ownerProfile?.name ?? "Hola",
@@ -155,7 +155,7 @@ function emailAdvertiser(p: AdvertiserEmailParams) {
   <a href="${p.appUrl}/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:14px;">
     Ver mi dashboard
   </a>
-  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpace · Publicidad física en Uruguay</p>
+  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpots · Publicidad física en Uruguay</p>
 </div>`;
 }
 
@@ -195,6 +195,6 @@ function emailOwner(p: OwnerEmailParams) {
   <a href="${p.appUrl}/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:14px;">
     Ver mi dashboard
   </a>
-  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpace · Publicidad física en Uruguay</p>
+  <p style="color:#52525b;font-size:12px;margin:28px 0 0;">AdSpots · Publicidad física en Uruguay</p>
 </div>`;
 }

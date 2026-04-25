@@ -198,7 +198,7 @@ export default async function SpaceDetailPage({ params }: { params: Promise<{ id
             <div className="bg-zinc-900 rounded-2xl p-5 text-center">
               <CheckCircle size={22} className="mx-auto text-blue-400 mb-2" />
               <p className="text-white text-sm font-semibold">Espacio verificado</p>
-              <p className="text-gray-500 text-xs mt-1">Revisado por el equipo AdSpace</p>
+              <p className="text-gray-500 text-xs mt-1">Revisado por el equipo AdSpots</p>
             </div>
             <div className="bg-zinc-900 rounded-2xl p-5 text-center">
               <Headphones size={22} className="mx-auto text-purple-400 mb-2" />

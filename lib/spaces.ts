@@ -153,7 +153,7 @@ export const SPACES: Space[] = [
     description: "Tótem digital de alta resolución en el pasillo central del shopping. Pantalla 4K de doble cara, 2 metros de altura. El anuncio se reproduce cada 10 segundos en rotación. Máxima exposición en el punto de mayor tráfico del centro comercial.",
     format: "Tótem LED 4K doble cara",
     available: true,
-    owner: "AdSpace Media",
+    owner: "AdSpots Media",
   },
   {
     id: 10,
@@ -167,6 +167,6 @@ export const SPACES: Space[] = [
     description: "Tótem digital exterior en la esquina más transitada de Punta del Este. Resistente a la intemperie, iluminación adaptativa según horario. Ideal para marcas de lujo, inmobiliarias, gastronomía y turismo. Temporada alta: diciembre a marzo.",
     format: "Tótem outdoor 75\" impermeable",
     available: true,
-    owner: "AdSpace Media",
+    owner: "AdSpots Media",
   },
 ];
