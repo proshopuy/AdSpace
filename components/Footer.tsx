@@ -38,8 +38,8 @@ export default function Footer() {
         <div className="border-t border-zinc-900 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs">
           <p>© {new Date().getFullYear()} AdSpots. Todos los derechos reservados.</p>
           <div className="flex gap-4">
-            <Link href="#" className="hover:text-white transition">Términos</Link>
-            <Link href="#" className="hover:text-white transition">Privacidad</Link>
+            <Link href="/terms" className="hover:text-white transition">Términos</Link>
+            <Link href="/privacy" className="hover:text-white transition">Privacidad</Link>
           </div>
         </div>
       </div>

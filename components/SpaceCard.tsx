@@ -50,7 +50,7 @@ export default function SpaceCard({ space }: { space: Space }) {
           )}
 
           <span className="absolute top-3 left-3 bg-black/70 text-xs text-gray-300 px-2 py-1 rounded-md">
-            {TYPE_LABELS[space.type]}
+            {TYPE_LABELS[space.type as keyof typeof TYPE_LABELS] ?? space.type}
           </span>
 
           {!space.available && (

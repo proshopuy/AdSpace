@@ -75,7 +75,7 @@ export default function SpaceModal({ space, open, onClose }: Props) {
             <X size={18} />
           </button>
           <span className="absolute top-4 left-4 bg-blue-600 text-xs text-white px-2 py-1 rounded-md">
-            {TYPE_LABELS[space.type]}
+            {TYPE_LABELS[space.type as keyof typeof TYPE_LABELS] ?? space.type}
           </span>
         </div>
 

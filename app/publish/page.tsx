@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
-import { TYPE_LABELS, SpaceType } from "@/lib/spaces";
+import { ArrowLeft, CheckCircle, Loader2, Search } from "lucide-react";
+import { TYPE_LABELS } from "@/lib/spaces";
 import { createClient } from "@/lib/supabase/client";
 import ImageUploader from "@/components/ImageUploader";
 
@@ -22,8 +22,12 @@ export default function PublishPage() {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
 
+  const [typeSearch, setTypeSearch] = useState("");
+  const [customType, setCustomType] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
   const [form, setForm] = useState({
-    type: "" as SpaceType | "",
+    type: "",
     title: "",
     city: "",
     location: "",
@@ -171,19 +175,57 @@ export default function PublishPage() {
         <form onSubmit={handleSubmit}>
           {step === 0 && (
             <div className="space-y-4">
-              <label className="text-sm text-gray-400 block mb-3">¿Qué tipo de espacio tenés?</label>
-              <div className="grid grid-cols-2 gap-3">
-                {(Object.entries(TYPE_LABELS) as [SpaceType, string][]).map(([key, label]) => (
-                  <button key={key} type="button" onClick={() => set("type", key)}
-                    className={`p-4 rounded-xl border text-sm font-medium text-left transition ${
-                      form.type === key ? "border-blue-500 bg-blue-500/10 text-white" : "border-zinc-800 text-gray-500 hover:border-zinc-600"
-                    }`}>
-                    {label}
-                  </button>
-                ))}
+              <label className="text-sm text-gray-400 block mb-1">¿Qué tipo de espacio tenés?</label>
+
+              <div className="relative">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Buscar tipo de espacio..."
+                  value={typeSearch}
+                  onChange={(e) => setTypeSearch(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
+                />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(TYPE_LABELS)
+                  .filter(([, label]) =>
+                    !typeSearch || label.toLowerCase().includes(typeSearch.toLowerCase())
+                  )
+                  .map(([key, label]) => (
+                    <button key={key} type="button" onClick={() => { set("type", key); setCustomType(""); setShowCustomInput(false); }}
+                      className={`p-4 rounded-xl border text-sm font-medium text-left transition ${
+                        form.type === key && !customType ? "border-blue-500 bg-blue-500/10 text-white" : "border-zinc-800 text-gray-500 hover:border-zinc-600"
+                      }`}>
+                      {label}
+                    </button>
+                  ))}
+
+                <button
+                  type="button"
+                  onClick={() => { setShowCustomInput(true); set("type", customType); }}
+                  className={`p-4 rounded-xl border text-sm font-medium text-left transition col-span-2 ${
+                    showCustomInput ? "border-blue-500 bg-blue-500/10 text-white" : "border-dashed border-zinc-700 text-gray-500 hover:border-zinc-500"
+                  }`}
+                >
+                  + Crear tipo nuevo
+                </button>
+              </div>
+
+              {showCustomInput && (
+                <input
+                  type="text"
+                  placeholder="Nombre del tipo de espacio..."
+                  value={customType}
+                  onChange={(e) => { setCustomType(e.target.value); set("type", e.target.value); }}
+                  autoFocus
+                  className="w-full bg-zinc-900 border border-blue-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none transition text-sm"
+                />
+              )}
+
               <button type="button" disabled={!form.type} onClick={() => setStep(1)}
-                className="w-full mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm">
+                className="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition text-white py-3 rounded-xl font-semibold text-sm">
                 Continuar
               </button>
             </div>

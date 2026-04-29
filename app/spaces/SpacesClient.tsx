@@ -1,27 +1,53 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import SpaceCard from "@/components/SpaceCard";
-import { CITIES, TYPE_LABELS, SpaceType, Space } from "@/lib/spaces";
+import { CITIES, TYPE_LABELS, Space } from "@/lib/spaces";
 
-const TYPES = Object.entries(TYPE_LABELS) as [SpaceType, string][];
+const PAGE_SIZE = 9;
 
 export default function SpacesClient({ spaces }: { spaces: Space[] }) {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("Todas");
-  const [type, setType] = useState<SpaceType | "all">("all");
-  const [maxPrice, setMaxPrice] = useState(60000);
+  const [type, setType] = useState("all");
+  const [typeSearch, setTypeSearch] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sort, setSort] = useState<"price_asc" | "price_desc" | "traffic">("traffic");
+  const [page, setPage] = useState(1);
+
+  const availableTypes = useMemo(() => {
+    const fromSpaces = Array.from(new Set(spaces.map((s) => s.type)));
+    const known = Object.keys(TYPE_LABELS);
+    const all = Array.from(new Set([...known, ...fromSpaces]));
+    return all.map((key) => ({
+      key,
+      label: TYPE_LABELS[key as keyof typeof TYPE_LABELS] ?? key,
+    }));
+  }, [spaces]);
+
+  const visibleTypes = useMemo(
+    () =>
+      typeSearch
+        ? availableTypes.filter((t) =>
+            t.label.toLowerCase().includes(typeSearch.toLowerCase())
+          )
+        : availableTypes,
+    [availableTypes, typeSearch]
+  );
 
   const filtered = useMemo(() => {
+    setPage(1);
+    const min = minPrice !== "" ? Number(minPrice) : 0;
+    const max = maxPrice !== "" ? Number(maxPrice) : Infinity;
     return spaces.filter((s) => {
       if (search && !s.title.toLowerCase().includes(search.toLowerCase()) &&
           !s.location.toLowerCase().includes(search.toLowerCase())) return false;
       if (city !== "Todas" && s.city !== city) return false;
       if (type !== "all" && s.type !== type) return false;
-      if (s.price > maxPrice) return false;
+      if (s.price < min || s.price > max) return false;
       if (onlyAvailable && !s.available) return false;
       return true;
     }).sort((a, b) => {
@@ -29,7 +55,10 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
       if (sort === "price_desc") return b.price - a.price;
       return b.traffic - a.traffic;
     });
-  }, [spaces, search, city, type, maxPrice, onlyAvailable, sort]);
+  }, [spaces, search, city, type, minPrice, maxPrice, onlyAvailable, sort]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main className="min-h-screen bg-black text-white pt-24 pb-20">
@@ -75,12 +104,24 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
 
               <div>
                 <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">Tipo de espacio</label>
-                <div className="flex flex-col gap-1">
-                  <button onClick={() => setType("all")}
-                    className={`text-sm text-left px-3 py-2 rounded-lg transition ${type === "all" ? "bg-blue-600 text-white" : "text-gray-400 hover:bg-zinc-800"}`}>
-                    Todos
-                  </button>
-                  {TYPES.map(([key, label]) => (
+                <div className="relative mb-2">
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar tipo..."
+                    value={typeSearch}
+                    onChange={(e) => setTypeSearch(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-7 pr-3 py-1.5 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                  {!typeSearch && (
+                    <button onClick={() => setType("all")}
+                      className={`text-sm text-left px-3 py-2 rounded-lg transition ${type === "all" ? "bg-blue-600 text-white" : "text-gray-400 hover:bg-zinc-800"}`}>
+                      Todos
+                    </button>
+                  )}
+                  {visibleTypes.map(({ key, label }) => (
                     <button key={key} onClick={() => setType(key)}
                       className={`text-sm text-left px-3 py-2 rounded-lg transition ${type === key ? "bg-blue-600 text-white" : "text-gray-400 hover:bg-zinc-800"}`}>
                       {label}
@@ -90,15 +131,22 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">
-                  Precio máximo: <span className="text-white">UYU {maxPrice.toLocaleString()}</span>
-                </label>
-                <input type="range" min={2000} max={60000} step={1000} value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-blue-500" />
-                <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>UYU 2.000</span>
-                  <span>UYU 60.000</span>
+                <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">Precio (UYU/mes)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Mín"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500 transition"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Máx"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500 transition"
+                  />
                 </div>
               </div>
 
@@ -110,7 +158,7 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
                 </button>
               </div>
 
-              <button onClick={() => { setSearch(""); setCity("Todas"); setType("all"); setMaxPrice(60000); setOnlyAvailable(false); }}
+              <button onClick={() => { setSearch(""); setCity("Todas"); setType("all"); setTypeSearch(""); setMinPrice(""); setMaxPrice(""); setOnlyAvailable(false); }}
                 className="text-xs text-gray-500 hover:text-white transition">
                 Limpiar filtros
               </button>
@@ -133,11 +181,47 @@ export default function SpacesClient({ spaces }: { spaces: Space[] }) {
                 <p className="text-sm mt-2">Probá ajustando los criterios de búsqueda.</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filtered.map((space) => (
-                  <SpaceCard key={space.id} space={space} />
-                ))}
-              </div>
+              <>
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {paginated.map((space) => (
+                    <SpaceCard key={space.id} space={space} />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-10">
+                    <button
+                      onClick={() => { setPage((p) => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={page === 1}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-gray-400 hover:text-white hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition ${
+                          p === page
+                            ? "bg-blue-600 text-white"
+                            : "bg-zinc-900 border border-zinc-800 text-gray-400 hover:text-white hover:border-zinc-600"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      disabled={page === totalPages}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-gray-400 hover:text-white hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

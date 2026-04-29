@@ -7,9 +7,21 @@ import Transition from "@/components/Transition";
 import SpacesGrid from "@/components/SpacesGrid";
 import HowItWorks from "@/components/HowItWorks";
 import FinalCTA from "@/components/FinalCTA";
-import { SPACES } from "@/lib/spaces";
+import { Space } from "@/lib/spaces";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("spaces")
+    .select("*")
+    .eq("approved", true)
+    .eq("available", true)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const featured: Space[] = data ?? [];
+
   return (
     <main className="bg-black min-h-screen relative">
       <Background />
@@ -18,7 +30,7 @@ export default function Home() {
       <SceneCar />
       <SceneMachine />
       <Transition />
-      <SpacesGrid spaces={SPACES.slice(0, 3)} />
+      {featured.length > 0 && <SpacesGrid spaces={featured} />}
       <HowItWorks />
       <FinalCTA />
     </main>

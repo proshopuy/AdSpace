@@ -1,6 +1,19 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { SPACES } from "@/lib/spaces";
 import SpacesClient from "./SpacesClient";
+
+export const metadata: Metadata = {
+  title: "Explorar espacios publicitarios",
+  description:
+    "Encontrá espacios publicitarios físicos en Uruguay: gimnasios, autos ploteados, tótems digitales, restaurantes, cartelería y más. Filtrá por ciudad, tipo y precio.",
+  alternates: { canonical: "https://adspots.com.uy/spaces" },
+  openGraph: {
+    title: "Explorar espacios publicitarios | AdSpots",
+    description:
+      "Más de 10 tipos de espacios físicos en Montevideo, Punta del Este y todo Uruguay.",
+    url: "https://adspots.com.uy/spaces",
+  },
+};
 
 export default async function SpacesPage() {
   const supabase = await createClient();
@@ -10,10 +23,5 @@ export default async function SpacesPage() {
     .eq("approved", true)
     .order("created_at", { ascending: false });
 
-  // Real approved spaces first, then mock demo spaces (excluding conflicting IDs)
-  const realIds = new Set((data ?? []).map((s: any) => s.id));
-  const mockSpaces = SPACES.filter((s) => !realIds.has(s.id));
-  const spaces = [...(data ?? []), ...mockSpaces];
-
-  return <SpacesClient spaces={spaces} />;
+  return <SpacesClient spaces={data ?? []} />;
 }

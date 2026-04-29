@@ -1,9 +1,44 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { SPACES, TYPE_LABELS, Space } from "@/lib/spaces";
+import { TYPE_LABELS, Space } from "@/lib/spaces";
 import { redirect } from "next/navigation";
 import { MapPin, Users, Shield, CheckCircle, Headphones, Clock, Layers, Zap } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import CampaignConfigurator from "@/components/CampaignConfigurator";
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params;
+  const numId = parseInt(id);
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("spaces")
+    .select("title, description, city, location, type, price, images, image")
+    .eq("id", numId)
+    .eq("approved", true)
+    .single();
+
+  if (!data) return { title: "Espacio no encontrado" };
+  const space = data;
+
+  const image = (space.images as string[] | undefined)?.[0] ?? space.image;
+  const title = `${space.title} en ${space.city}`;
+  const description = `Publicidad en ${TYPE_LABELS[space.type as keyof typeof TYPE_LABELS]} — ${space.location}, ${space.city}. Desde UYU ${space.price.toLocaleString()}/mes.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `https://adspots.com.uy/spaces/${id}` },
+    openGraph: {
+      title: `${title} | AdSpots`,
+      description,
+      url: `https://adspots.com.uy/spaces/${id}`,
+      images: image ? [{ url: image, width: 800, height: 600, alt: space.title }] : [],
+    },
+  };
+}
 
 function getLoopInfo(type: string): { frequency: string; loopDuration: string; impressionsRatio: number } {
   if (type === "totem") return { frequency: "1 de cada 6", loopDuration: "60 segundos", impressionsRatio: 1 / 6 };
@@ -24,8 +59,6 @@ export default async function SpaceDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const numId = parseInt(id);
 
-  let space: Space | null = null;
-
   const supabase = await createClient();
   const { data } = await supabase
     .from("spaces")
@@ -34,13 +67,8 @@ export default async function SpaceDetailPage({ params }: { params: Promise<{ id
     .eq("approved", true)
     .single();
 
-  if (data) {
-    space = data as Space;
-  } else {
-    space = SPACES.find((s) => s.id === numId) ?? null;
-  }
-
-  if (!space) redirect("/spaces");
+  if (!data) redirect("/spaces");
+  const space = data as Space;
 
   const primaryImage = space.images?.[0] ?? space.image;
   const pricePerDay = Math.round(space.price / 30);
@@ -65,7 +93,7 @@ export default async function SpaceDetailPage({ params }: { params: Promise<{ id
               <div className="w-full h-full flex items-center justify-center text-5xl opacity-20">📺</div>
             )}
             <span className="absolute top-4 left-4 bg-blue-600 text-xs text-white px-3 py-1 rounded-md font-medium">
-              {TYPE_LABELS[space.type]}
+              {TYPE_LABELS[space.type as keyof typeof TYPE_LABELS] ?? space.type}
             </span>
             {!space.available && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
